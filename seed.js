@@ -2,11 +2,12 @@
 // The data can then be loaded with the node seed.js
 
 var Promise = require('bluebird');
-var db = require('./models');
+var db = require('./models').db;
 var Place = require('./models').Place;
 var Hotel = require('./models').Hotel;
 var Restaurant = require('./models').Restaurant;
 var Activity = require('./models').Activity;
+var Day = require('./models').Day;
 
 var data = {
   hotel: [
@@ -59,6 +60,11 @@ var data = {
     {name: "Washington Square Park", place: {address: "1 Washington Sq E", city: "New York", state: "NY", phone: "123-456-7890", location: [40.732204, -73.998649]}, age_range: "All" },
     {name: "Union Square Holiday Market", place: {address: "Union Sq & W 14th St", city: "New York", state: "NY", phone: "123-456-7890", location: [40.733615, -73.987995]}, age_range: "All" },
     {name: "Strand Bookstore", place: {address: "828 Broadway", city: "New York", state: "NY", phone: "123-456-7890", location: [40.733274, -73.990870]}, age_range: "All" }
+  ],
+  day:[
+    {number: 1},
+    {number: 2},
+    {number: 3}
   ]
 };
 
@@ -67,7 +73,11 @@ db.sync({force: true})
   console.log("Dropped old data, now inserting data");
   return Promise.map(Object.keys(data), function (name) {
     return Promise.map(data[name], function (item) {
-      return db.model(name)
+      if(name === 'day') {
+        return db.model(name)
+        .create(item);
+      }
+      else return db.model(name)
       .create(item, {
         include: [Place]
       });
