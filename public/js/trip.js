@@ -54,25 +54,12 @@ var tripModule = (function () {
   function addDay () {
     if (this && this.blur) this.blur(); // removes focus box from buttons
     var newDay = dayModule.create({ number: days.length + 1 }); // dayModule
-    $.ajax({
-      method: 'POST',
-      url: '/api/days',
-      data: {
-        number: newDay.number
-      }
-    })
-      .then( () => {
-        days.push(newDay);
-        if (days.length === 1) {
-          currentDay = newDay;
-        }
-        switchTo(newDay);
-      })
-    // days.push(newDay);
-    // if (days.length === 1) {
-    //   currentDay = newDay;
-    // }
-    // switchTo(newDay);
+
+    days.push(newDay);
+    if (days.length === 1) {
+      currentDay = newDay;
+    }
+    switchTo(newDay);
   }
 
   // ~~~~~~~~~~~~~~~~~~~~~~~
@@ -98,11 +85,20 @@ var tripModule = (function () {
   var publicAPI = {
 
     load: function () {
-
+      $.ajax({
+        method: "GET",
+        url: "/api/days"
+      })
+      .then((days) => {
+        days.forEach((day) => {
+          addDay();
+        })
+      })
       // ~~~~~~~~~~~~~~~~~~~~~~~
         //If we are trying to load existing Days, then let's make a request to the server for the day. Remember this is async. For each day we get back what do we need to do to it?
       // ~~~~~~~~~~~~~~~~~~~~~~~
-      $(addDay);
+      // $(addDay);
+
     },
 
     switchTo: switchTo,
@@ -120,3 +116,17 @@ var tripModule = (function () {
   return publicAPI;
 
 }());
+    // $.ajax({
+    //   method: 'POST',
+    //   url: '/api/days',
+    //   data: {
+    //     number: newDay.number
+    //   }
+    // })
+    //   .then( () => {
+    //     days.push(newDay);
+    //     if (days.length === 1) {
+    //       currentDay = newDay;
+    //     }
+    //     switchTo(newDay);
+    //   })
