@@ -42,7 +42,10 @@ var tripModule = (function () {
     // before calling `addDay` or `deleteCurrentDay` that update the frontend (the UI), we need to make sure that it happened successfully on the server
   // ~~~~~~~~~~~~~~~~~~~~~~~
   $(function () {
-    $addButton.on('click', addDay);
+    $addButton.on('click', () => {
+      addDay();
+      addDayToDb(currentDay);
+    });
     $removeButton.on('click', deleteCurrentDay);
   });
 
@@ -61,13 +64,28 @@ var tripModule = (function () {
     }
     switchTo(newDay);
   }
-
+  function addDayToDb (newDay) {
+    $.ajax({
+      method: 'POST',
+      url: '/api/days',
+      data: {
+        number: newDay.number
+      }
+    })
+    .catch(console.error)
+  }
   // ~~~~~~~~~~~~~~~~~~~~~~~
     // Do not delete a day until it has already been deleted from the DB
   // ~~~~~~~~~~~~~~~~~~~~~~~
   function deleteCurrentDay () {
     // prevent deleting last day
     if (days.length < 2 || !currentDay) return;
+    $.ajax({
+      method: "DELETE",
+      url: "/api/days/" + currentDay.number
+    })
+    .catch(console.error)
+
     // remove from the collection
     var index = days.indexOf(currentDay),
       previousDay = days.splice(index, 1)[0],
@@ -90,8 +108,10 @@ var tripModule = (function () {
         url: "/api/days"
       })
       .then((days) => {
+        var firstDay;
         days.forEach((day) => {
           addDay();
+          if(!firstDay) firstDay = currentDay;
           if (day.hotel) tripModule.addToCurrent(attractionsModule.getEnhanced(day.hotel))
           day.activities.forEach((activity) => {
             tripModule.addToCurrent(attractionsModule.getEnhanced(activity));
@@ -100,11 +120,16 @@ var tripModule = (function () {
             tripModule.addToCurrent(attractionsModule.getEnhanced(restaurant));
           });
         })
+        if (!firstDay) {
+          addDay();
+          addDayToDb(currentDay);
+          firstDay = currentDay;
+        }
+        tripModule.switchTo(firstDay);
       })
       // ~~~~~~~~~~~~~~~~~~~~~~~
         //If we are trying to load existing Days, then let's make a request to the server for the day. Remember this is async. For each day we get back what do we need to do to it?
       // ~~~~~~~~~~~~~~~~~~~~~~~
-      // $(addDay);
 
     },
 
@@ -125,17 +150,3 @@ var tripModule = (function () {
   return publicAPI;
 
 }());
-    // $.ajax({
-    //   method: 'POST',
-    //   url: '/api/days',
-    //   data: {
-    //     number: newDay.number
-    //   }
-    // })
-    //   .then( () => {
-    //     days.push(newDay);
-    //     if (days.length === 1) {
-    //       currentDay = newDay;
-    //     }
-    //     switchTo(newDay);
-    //   })

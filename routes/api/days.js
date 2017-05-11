@@ -9,7 +9,6 @@ module.exports = router;
 
 
 router.get('/', (req, res, next) => {
-  console.log('hit route')
   Day.findAll({
     include: [Hotel, Restaurant, Activity],
     order: 'number ASC'
@@ -17,6 +16,7 @@ router.get('/', (req, res, next) => {
     .then(days => {
       res.send(days);
     })
+    .catch(next);
 });
 
 
@@ -41,8 +41,7 @@ router.post('/', (req, res, next) => {
   .then(day => {
     res.json(day);
   })
-  .catch(console.error)
-
+  .catch(next)
 });
 
 function getDay(dayNumber) {
@@ -78,11 +77,46 @@ router.post('/:id/activity', (req, res, next) => {
   .catch(next);
 });
 
+router.delete('/:number', (req, res, next) => {
+  Day.findAll({
+    order: 'number ASC'
+  })
+  .then((days) => {
+    days.forEach(day => {
+      if (day.number === Number(req.params.number)) {
+        return day.destroy();
+      }
+      else if (day.number > +req.params.number) {
+        return day.update({
+          number: day.number - 1
+        })
+      }
+    })
+  })
+  .catch(next);
+});
 
-// router.get('/days/:id/hotels', (req, res, next) => {
-//
-// });
-//
-// router.get('/days/:id/hotels', (req, res, next) => {
-//
-// });
+router.delete('/:number/:attraction/:id', (req, res, next) => {
+  let findingDay = getDay(req.params.number);
+  let attraction;
+  let attractionName;
+  switch (req.params.attraction) {
+    case 'hotel':
+      attraction = Hotel;
+      attractionName = 'Hotel'
+      break;
+    case 'restaurant':
+      attraction = Restaurant;
+      attractionName = 'Restaurant'
+      break;
+    case 'activity':
+    attraction = Activity;
+    attractionName = 'Activity'
+  }
+  let findingAttraction = attraction.findById(req.params.id);
+  Promise.all([findingDay, findingAttraction])
+  .then((promiseArr) => {
+    return promiseArr[0]['remove' + attractionName](promiseArr[1]);
+  })
+  .catch(next);
+});

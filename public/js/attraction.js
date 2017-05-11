@@ -41,6 +41,10 @@ var attractionModule = (function () {
       .append($button);
     var self = this;
     $button.on('click', function () {
+      $.ajax({
+        method: "DELETE",
+        url: "/api/days/" + tripModule.currentDay().number + "/" + self.type + "/" + self.id
+      })
       tripModule.removeFromCurrent(self); // remove from day model
     });
     return this;
