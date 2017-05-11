@@ -1,5 +1,5 @@
 'use strict';
-/* global $ dayModule */
+/* global $ dayModule attractionsModule*/
 
 /**
  * A module for managing multiple days & application state.
@@ -92,6 +92,13 @@ var tripModule = (function () {
       .then((days) => {
         days.forEach((day) => {
           addDay();
+          if (day.hotel) tripModule.addToCurrent(attractionsModule.getEnhanced(day.hotel))
+          day.activities.forEach((activity) => {
+            tripModule.addToCurrent(attractionsModule.getEnhanced(activity));
+          });
+            day.restaurants.forEach((restaurant) => {
+            tripModule.addToCurrent(attractionsModule.getEnhanced(restaurant));
+          });
         })
       })
       // ~~~~~~~~~~~~~~~~~~~~~~~
@@ -109,8 +116,10 @@ var tripModule = (function () {
 
     removeFromCurrent: function (attraction) {
       currentDay.removeAttraction(attraction);
+    },
+    currentDay: function () {
+      return currentDay;
     }
-
   };
 
   return publicAPI;

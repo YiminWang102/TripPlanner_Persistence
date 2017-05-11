@@ -3,6 +3,11 @@ var db = require('./_db');
 
 Day = db.define('day', {
   number: Sequelize.INTEGER
+},
+{
+  instanceMethods: {
+
+  }
 });
 
 module.exports = Day;

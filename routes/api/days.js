@@ -11,9 +11,8 @@ module.exports = router;
 router.get('/', (req, res, next) => {
   console.log('hit route')
   Day.findAll({
-    order: [
-      ['number', 'ASC']
-    ]
+    include: [Hotel, Restaurant, Activity],
+    order: 'number ASC'
   })
     .then(days => {
       res.send(days);
@@ -46,8 +45,37 @@ router.post('/', (req, res, next) => {
 
 });
 
-router.post('/:id/hotels', (req, res, next) => {
+function getDay(dayNumber) {
+  return Day.findOne( {
+    where: {
+      number: dayNumber
+    }
+  });
+}
+router.post('/:id/hotel', (req, res, next) => {
+  var findingDay = getDay(req.params.id);
+  var findingHotel = Hotel.findById(req.body.id);
+  Promise.all([findingDay, findingHotel])
+  .then((promArr) => {
+    promArr[0].setHotel(promArr[1]);
+  })
+  .catch(next);
+});
 
+router.post('/:id/restaurant', (req, res, next) => {
+  getDay(req.params.id)
+  .then((day) => {
+    day.addRestaurant(req.body.id);
+  })
+  .catch(next);
+});
+
+router.post('/:id/activity', (req, res, next) => {
+  getDay(req.params.id)
+  .then((day) => {
+    day.addActivity(req.body.id);
+  })
+  .catch(next);
 });
 
 
